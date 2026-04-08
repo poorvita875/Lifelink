@@ -1,113 +1,36 @@
-# LifeLink Backend — Setup & API Docs
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Quick Start
+## Getting Started
+
+First, run the development server:
 
 ```bash
-cd backend
-npm install
-npm run dev     # development with auto-reload
-# OR
-npm start       # production
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Backend runs on: http://localhost:5000
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
----
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-## API Endpoints
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### POST /api/create-case
-Create a new emergency case.
+## Learn More
 
-**Request:**
-```json
-{
-  "description": "Patient is unconscious and not breathing after a road accident",
-  "location": { "lat": 12.9716, "lng": 77.5946 }
-}
-```
+To learn more about Next.js, take a look at the following resources:
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "caseId": "LL-RED-2024-4821",
-    "severity": "RED",
-    "summary": "CRITICAL — Immediate intervention required.",
-    "selectedHospital": {
-      "name": "Apollo Hospital Bannerghatta",
-      "distanceKm": 3.2,
-      "responseTimeMinutes": 8,
-      "icuBeds": 5
-    },
-    "hospitalSelectionReason": "Selected Apollo Hospital — nearest available hospital — with icu capability — 5 ICU beds available — estimated response time: 8 min — 12 beds available.",
-    "qrUrl": "http://localhost:3000/case/LL-RED-2024-4821",
-    "timestamp": "2024-01-15T10:30:00.000Z"
-  }
-}
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
----
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-### GET /api/case/:id
-Retrieve case by ID (called when QR is scanned).
+## Deploy on Vercel
 
-```
-GET /api/case/LL-RED-2024-4821
-```
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
----
-
-### GET /api/cases
-Get all recent cases (for hospital dashboard).
-
-```
-GET /api/cases
-```
-
----
-
-### GET /api/hospitals
-Get all hospitals with live simulated bed availability.
-
----
-
-### GET /api/hospitals/:id
-Get a single hospital's current status.
-
----
-
-## Firebase Setup (Optional)
-
-If you want Firebase:
-1. Go to Firebase Console → Project Settings → Service Accounts
-2. Generate a new private key → download JSON
-3. Copy values into your `.env` file
-
-If Firebase is NOT set up, the backend automatically uses in-memory storage — perfectly fine for the hackathon demo.
-
----
-
-## Project Structure
-
-```
-backend/
-├── index.js                    # Server entry point
-├── controllers/
-│   ├── caseController.js       # Case creation & retrieval
-│   └── hospitalController.js   # Hospital status
-├── routes/
-│   ├── caseRoutes.js
-│   └── hospitalRoutes.js
-├── services/
-│   ├── severityService.js      # RED/YELLOW/GREEN classification
-│   ├── aeraService.js          # AERA hospital routing algorithm
-│   └── firebaseService.js      # Database operations
-├── utils/
-│   └── helpers.js              # Haversine, ID generator, logger
-├── data/
-│   └── hospitals.js            # Mock hospital dataset
-└── logs/
-    └── emergency_log.txt       # Auto-generated case log
-```
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
