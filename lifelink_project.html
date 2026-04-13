@@ -1,0 +1,3488 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LifeLink — AI Emergency Response</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0e1a;
+        --bg2: #111827;
+        --bg3: #1a2236;
+        --bg4: #1f2d45;
+        --text: #f0f4ff;
+        --text2: #94a3b8;
+        --text3: #64748b;
+        --accent: #ef4444;
+        --accent2: #f97316;
+        --green: #38a169;
+        --yellow: #d69e2e;
+        --red: #ef4444;
+        --blue: #3b82f6;
+        --blue-light: #60a5fa;
+        --border: rgba(255, 255, 255, 0.08);
+        --border2: rgba(255, 255, 255, 0.15);
+        --card: rgba(255, 255, 255, 0.04);
+        --radius: 16px;
+        --radius-sm: 10px;
+        --font: "Space Grotesk", sans-serif;
+        --mono: "JetBrains Mono", monospace;
+        --tr: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        line-height: 1.6;
+      }
+      .screen {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        overflow-y: auto;
+        display: none;
+        flex-direction: column;
+      }
+      .screen.active {
+        display: flex;
+      }
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+        background: rgba(10, 14, 26, 0.9);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .logo-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .nav-btn {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border2);
+        background: var(--card);
+        color: var(--text2);
+        font-size: 13px;
+        cursor: pointer;
+        font-family: var(--font);
+        transition: var(--tr);
+      }
+      .nav-btn:hover {
+        background: var(--bg3);
+        color: var(--text);
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        animation: pulse 2s infinite;
+        display: inline-block;
+        margin-right: 6px;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(0.85);
+        }
+      }
+      .hero {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        position: relative;
+      }
+      .hero-bg {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(239, 68, 68, 0.07) 0%,
+          transparent 70%
+        );
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 100px;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.08);
+        font-size: 12px;
+        color: #fca5a5;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .hero h1 {
+        font-size: clamp(32px, 6vw, 68px);
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero h1 .accent {
+        background: linear-gradient(135deg, #ef4444, #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero p {
+        font-size: clamp(15px, 2vw, 18px);
+        color: var(--text2);
+        max-width: 560px;
+        margin: 0 auto 36px;
+      }
+      .sos-wrap {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 36px;
+      }
+      .sos-ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        animation: ring-expand 2.5s infinite;
+        pointer-events: none;
+        top: -28px;
+        left: -28px;
+        right: -28px;
+        bottom: -28px;
+      }
+      .sos-ring2 {
+        top: -48px;
+        left: -48px;
+        right: -48px;
+        bottom: -48px;
+        animation-delay: 0.8s;
+      }
+      @keyframes ring-expand {
+        0% {
+          opacity: 1;
+          transform: scale(0.88);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.2);
+        }
+      }
+      .sos-btn {
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(
+          135deg,
+          #ef4444 0%,
+          #dc2626 50%,
+          #b91c1c 100%
+        );
+        color: white;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: var(--font);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: var(--tr);
+        animation: sos-pulse 2.5s infinite;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .sos-btn:hover {
+        transform: scale(1.05);
+      }
+      .sos-btn:active {
+        transform: scale(0.97);
+      }
+      .sos-icon {
+        font-size: 44px;
+        line-height: 1;
+      }
+      @keyframes sos-pulse {
+        0% {
+          box-shadow:
+            0 0 0 0 rgba(239, 68, 68, 0.5),
+            0 20px 60px rgba(239, 68, 68, 0.3);
+        }
+        70% {
+          box-shadow:
+            0 0 0 22px rgba(239, 68, 68, 0),
+            0 20px 60px rgba(239, 68, 68, 0.3);
+        }
+        100% {
+          box-shadow:
+            0 0 0 0 rgba(239, 68, 68, 0),
+            0 20px 60px rgba(239, 68, 68, 0.3);
+        }
+      }
+      .input-area {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .input-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        transition: var(--tr);
+      }
+      .input-card:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+      .input-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .lbl-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: inline-block;
+      }
+      .emergency-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 15px;
+        resize: none;
+        min-height: 80px;
+        line-height: 1.6;
+      }
+      .emergency-input::placeholder {
+        color: var(--text3);
+      }
+      .voice-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      .mic-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid var(--border2);
+        background: var(--card);
+        color: var(--text2);
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--tr);
+        flex-shrink: 0;
+      }
+      .mic-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(239, 68, 68, 0.1);
+      }
+      .mic-btn.listening {
+        border-color: var(--accent);
+        color: white;
+        background: var(--accent);
+        animation: mic-pulse 1s infinite;
+      }
+      @keyframes mic-pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+      .voice-status {
+        font-size: 13px;
+        color: var(--text3);
+        flex: 1;
+        min-width: 120px;
+      }
+      .voice-status.active {
+        color: var(--accent);
+      }
+      .wave-wrap {
+        display: none;
+        align-items: center;
+        gap: 3px;
+        height: 18px;
+      }
+      .wave-wrap.show {
+        display: flex;
+      }
+      .wave-bar {
+        width: 3px;
+        border-radius: 2px;
+        background: var(--accent);
+        animation: wave 0.8s ease-in-out infinite;
+      }
+      .wave-bar:nth-child(1) {
+        height: 7px;
+        animation-delay: 0s;
+      }
+      .wave-bar:nth-child(2) {
+        height: 14px;
+        animation-delay: 0.1s;
+      }
+      .wave-bar:nth-child(3) {
+        height: 10px;
+        animation-delay: 0.2s;
+      }
+      .wave-bar:nth-child(4) {
+        height: 18px;
+        animation-delay: 0.3s;
+      }
+      .wave-bar:nth-child(5) {
+        height: 9px;
+        animation-delay: 0.4s;
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: scaleY(1);
+        }
+        50% {
+          transform: scaleY(0.35);
+        }
+      }
+      .loc-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 100px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        font-size: 13px;
+        color: var(--text2);
+        cursor: pointer;
+        transition: var(--tr);
+      }
+      .loc-pill:hover {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .loc-pill.ok {
+        border-color: var(--green);
+        color: #68d391;
+        background: rgba(56, 161, 105, 0.1);
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 17px;
+        border-radius: var(--radius);
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        font-family: var(--font);
+        transition: var(--tr);
+      }
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(239, 68, 68, 0.4);
+      }
+      .submit-btn:active {
+        transform: translateY(0);
+      }
+      .quick-btn {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border2);
+        background: var(--card);
+        color: var(--text2);
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font);
+        transition: var(--tr);
+      }
+      .quick-btn:hover {
+        background: var(--bg3);
+        color: var(--text);
+      }
+      .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 36px;
+        padding: 22px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--border);
+      }
+      .stat-item {
+        text-align: center;
+      }
+      .stat-val {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text);
+        font-family: var(--mono);
+      }
+      .stat-label {
+        font-size: 11px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 3px;
+      }
+      #screen-processing {
+        align-items: center;
+        justify-content: center;
+        background: var(--bg);
+      }
+      .proc-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 44px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+      }
+      .spinner-wrap {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto 28px;
+      }
+      .sp {
+        position: absolute;
+        border-radius: 50%;
+        border: 3px solid var(--border);
+      }
+      .sp1 {
+        inset: 0;
+        border-top-color: var(--accent);
+        animation: spin 1s linear infinite;
+      }
+      .sp2 {
+        inset: 12px;
+        border-top-color: var(--accent2);
+        animation: spin 0.8s linear infinite reverse;
+      }
+      .sp3 {
+        inset: 24px;
+        border-top-color: #a78bfa;
+        animation: spin 1.2s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .sp-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 26px;
+      }
+      .proc-title {
+        font-size: 21px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      .proc-step-label {
+        font-size: 13px;
+        color: var(--text3);
+        margin-bottom: 20px;
+        min-height: 18px;
+      }
+      .step-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 13px;
+        border-radius: 8px;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text2);
+        margin-bottom: 8px;
+        transition: var(--tr);
+      }
+      .step-item.done {
+        border-color: var(--green);
+        color: var(--text);
+      }
+      .step-item.active {
+        border-color: var(--accent);
+        color: var(--text);
+        background: rgba(239, 68, 68, 0.08);
+      }
+      .step-icon {
+        font-size: 15px;
+        width: 18px;
+        text-align: center;
+      }
+      .step-check {
+        margin-left: auto;
+        font-size: 11px;
+        color: var(--text3);
+      }
+      .step-item.done .step-check {
+        color: var(--green);
+      }
+      .step-item.active .step-check {
+        color: var(--accent);
+      }
+      .hosp-scan {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text2);
+        margin-bottom: 6px;
+      }
+      .hosp-scan.best {
+        border-color: var(--green);
+        color: var(--text);
+      }
+      .hosp-score {
+        font-family: var(--mono);
+        color: var(--text3);
+      }
+      .hosp-score.best {
+        color: var(--green);
+        font-weight: 600;
+      }
+      #screen-result {
+        background: var(--bg);
+      }
+      .result-wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 28px 20px;
+      }
+      .sev-banner {
+        border-radius: var(--radius);
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 22px;
+        border: 1px solid;
+      }
+      .sev-banner.red {
+        background: rgba(229, 62, 62, 0.1);
+        border-color: rgba(229, 62, 62, 0.35);
+      }
+      .sev-banner.yellow {
+        background: rgba(214, 158, 46, 0.1);
+        border-color: rgba(214, 158, 46, 0.35);
+      }
+      .sev-banner.green {
+        background: rgba(56, 161, 105, 0.1);
+        border-color: rgba(56, 161, 105, 0.35);
+      }
+      .sev-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 18px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .sev-badge.red {
+        background: var(--red);
+        color: white;
+      }
+      .sev-badge.yellow {
+        background: var(--yellow);
+        color: white;
+      }
+      .sev-badge.green {
+        background: var(--green);
+        color: white;
+      }
+      .sev-label {
+        font-size: 14px;
+        color: var(--text2);
+      }
+      .caseid-pill {
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 6px 13px;
+        border-radius: 100px;
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        color: var(--text2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .caseid-pill:hover {
+        border-color: var(--blue);
+        color: var(--blue-light);
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 640px) {
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .rcard {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px;
+        transition: var(--tr);
+      }
+      .rcard:hover {
+        border-color: var(--border2);
+      }
+      .rcard.full {
+        grid-column: 1/-1;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .card-icon {
+        font-size: 19px;
+      }
+      .card-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .hosp-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 12px;
+      }
+      .tag {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        border: 1px solid var(--border);
+        color: var(--text2);
+      }
+      .tag.hi {
+        border-color: var(--blue);
+        color: var(--blue-light);
+        background: rgba(59, 130, 246, 0.1);
+      }
+      .decision {
+        background: var(--bg3);
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 13px;
+        color: var(--text2);
+        line-height: 1.6;
+        border-left: 3px solid var(--blue);
+        margin-top: 10px;
+      }
+      .aera-box {
+        background: var(--bg3);
+        border-radius: 8px;
+        padding: 14px;
+        margin-top: 14px;
+        border: 1px solid var(--border);
+      }
+      .aera-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text3);
+        margin-bottom: 12px;
+      }
+      .aera-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .aera-label {
+        font-size: 12px;
+        color: var(--text2);
+        min-width: 110px;
+      }
+      .aera-track {
+        flex: 1;
+        height: 4px;
+        background: var(--bg4);
+        border-radius: 2px;
+      }
+      .aera-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 1.2s ease;
+      }
+      .aera-val {
+        font-size: 12px;
+        font-family: var(--mono);
+        color: var(--text2);
+        min-width: 36px;
+        text-align: right;
+      }
+      .alt-hosp {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--border);
+        gap: 10px;
+      }
+      .alt-hosp:last-child {
+        border-bottom: none;
+      }
+      .alt-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .alt-detail {
+        font-size: 12px;
+        color: var(--text3);
+        margin-top: 2px;
+      }
+      .alt-score {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 4px 9px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        color: var(--text2);
+      }
+      .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #a78bfa;
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        background: rgba(167, 139, 250, 0.08);
+        padding: 3px 10px;
+        border-radius: 100px;
+        margin-bottom: 10px;
+      }
+      .ai-summary {
+        font-size: 15px;
+        color: var(--text2);
+        line-height: 1.8;
+      }
+      .vital-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .vital {
+        background: var(--bg3);
+        border-radius: 8px;
+        padding: 11px;
+        border: 1px solid var(--border);
+      }
+      .vital-key {
+        font-size: 11px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 3px;
+      }
+      .vital-val {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        font-family: var(--mono);
+      }
+      .qr-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        min-height: 200px;
+      }
+      #qrcode,
+      #qrcode2 {
+        background: white;
+        padding: 14px;
+        border-radius: 8px;
+      }
+      .qr-label {
+        font-size: 12px;
+        color: var(--text3);
+        text-align: center;
+      }
+      .qr-url {
+        font-size: 11px;
+        color: var(--blue-light);
+        font-family: var(--mono);
+        word-break: break-all;
+        text-align: center;
+      }
+      .fq-card {
+        background: var(--bg2);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        border-radius: var(--radius);
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .fq-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #a78bfa;
+      }
+      .fq-q {
+        font-size: 15px;
+        color: var(--text);
+        margin-bottom: 12px;
+      }
+      .fq-opts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .fq-opt {
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        background: rgba(167, 139, 250, 0.05);
+        color: var(--text2);
+        font-size: 13px;
+        cursor: pointer;
+        transition: var(--tr);
+        font-family: var(--font);
+      }
+      .fq-opt:hover {
+        border-color: #a78bfa;
+        color: #a78bfa;
+        background: rgba(167, 139, 250, 0.12);
+      }
+      .fq-opt.sel {
+        border-color: #a78bfa;
+        color: #a78bfa;
+        background: rgba(167, 139, 250, 0.12);
+      }
+      .fq-submit {
+        margin-top: 14px;
+        padding: 11px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: var(--font);
+      }
+      .action-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .btn-primary {
+        flex: 1;
+        min-width: 150px;
+        padding: 15px 22px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: var(--font);
+        transition: var(--tr);
+        text-align: center;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+      }
+      .btn-secondary {
+        flex: 1;
+        min-width: 150px;
+        padding: 15px 22px;
+        border-radius: 10px;
+        border: 1px solid var(--border2);
+        cursor: pointer;
+        background: var(--card);
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 600;
+        font-family: var(--font);
+        transition: var(--tr);
+        text-align: center;
+      }
+      .btn-secondary:hover {
+        background: var(--bg3);
+        border-color: var(--blue);
+      }
+      .btn-outline {
+        padding: 13px 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        cursor: pointer;
+        background: transparent;
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font);
+        transition: var(--tr);
+      }
+      .btn-outline:hover {
+        background: rgba(239, 68, 68, 0.08);
+      }
+      #screen-details {
+        background: var(--bg);
+      }
+      .details-wrap {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 28px 20px;
+      }
+      .sec-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 10px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid var(--border);
+      }
+      .detail-row {
+        display: flex;
+        gap: 14px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--border);
+        align-items: flex-start;
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+      .detail-key {
+        font-size: 13px;
+        color: var(--text3);
+        min-width: 150px;
+        flex-shrink: 0;
+      }
+      .detail-val {
+        font-size: 14px;
+        color: var(--text);
+        flex: 1;
+        font-family: var(--mono);
+      }
+      .tl-item {
+        display: flex;
+        gap: 14px;
+        padding: 10px 0;
+      }
+      .tl-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+        margin-top: 5px;
+        flex-shrink: 0;
+      }
+      .tl-time {
+        font-size: 12px;
+        color: var(--text3);
+        font-family: var(--mono);
+        min-width: 78px;
+      }
+      .tl-event {
+        font-size: 14px;
+        color: var(--text2);
+      }
+      #screen-dashboard {
+        background: var(--bg);
+      }
+      .dash-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 20px;
+      }
+      .dash-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 28px;
+      }
+      .dash-title {
+        font-size: 23px;
+        font-weight: 700;
+      }
+      .dash-sub {
+        font-size: 13px;
+        color: var(--text3);
+        margin-top: 3px;
+      }
+      .live-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        border-radius: 100px;
+        background: rgba(56, 161, 105, 0.1);
+        border: 1px solid rgba(56, 161, 105, 0.3);
+        font-size: 13px;
+        color: #68d391;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+        margin-bottom: 26px;
+      }
+      .mc {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 22px;
+      }
+      .mc-val {
+        font-size: 30px;
+        font-weight: 700;
+        font-family: var(--mono);
+      }
+      .mc-val.red {
+        color: var(--accent);
+      }
+      .mc-val.yellow {
+        color: var(--yellow);
+      }
+      .mc-val.green {
+        color: var(--green);
+      }
+      .mc-val.blue {
+        color: var(--blue-light);
+      }
+      .mc-label {
+        font-size: 13px;
+        color: var(--text3);
+        margin-top: 3px;
+      }
+      .mc-sub {
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 6px;
+      }
+      .cap-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 10px;
+      }
+      .cap-item {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 13px;
+      }
+      .cap-name {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: var(--text);
+      }
+      .cap-detail {
+        font-size: 11px;
+        color: var(--text3);
+        margin-bottom: 7px;
+      }
+      .cap-bar-track {
+        height: 4px;
+        background: var(--bg4);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .cap-bar-fill {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .cap-pct {
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 4px;
+      }
+      .cases-table-wrap {
+        overflow-x: auto;
+      }
+      .cases-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 680px;
+      }
+      .cases-table th {
+        text-align: left;
+        padding: 11px 14px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg2);
+      }
+      .cases-table td {
+        padding: 14px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      .cases-table tr:hover td {
+        background: var(--bg3);
+      }
+      .sev-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 7px;
+      }
+      .sev-dot.red {
+        background: var(--accent);
+      }
+      .sev-dot.yellow {
+        background: var(--yellow);
+      }
+      .sev-dot.green {
+        background: var(--green);
+      }
+      .table-btn {
+        padding: 6px 13px;
+        border-radius: 6px;
+        border: 1px solid var(--border2);
+        background: var(--card);
+        color: var(--text2);
+        font-size: 12px;
+        cursor: pointer;
+        font-family: var(--font);
+        transition: var(--tr);
+      }
+      .table-btn:hover {
+        background: var(--bg3);
+        color: var(--text);
+      }
+      .eta-tag {
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: var(--blue-light);
+      }
+      .dash-select {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 13px;
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 13px;
+        outline: none;
+        cursor: pointer;
+      }
+      .toast-wrap {
+        position: fixed;
+        top: 76px;
+        right: 22px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        pointer-events: none;
+      }
+      .toast {
+        padding: 13px 18px;
+        border-radius: 10px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        font-size: 14px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 260px;
+        max-width: 360px;
+        animation: slide-in 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .toast.success {
+        border-color: rgba(56, 161, 105, 0.5);
+      }
+      .toast.error {
+        border-color: rgba(239, 68, 68, 0.5);
+      }
+      .toast.info {
+        border-color: rgba(59, 130, 246, 0.4);
+      }
+      @keyframes slide-in {
+        from {
+          transform: translateX(110%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slide-out {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(110%);
+          opacity: 0;
+        }
+      }
+      .toast.out {
+        animation: slide-out 0.4s ease forwards;
+      }
+      .copy-fb {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 9px 18px;
+        border-radius: 100px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 13px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 9999;
+      }
+      .copy-fb.show {
+        opacity: 1;
+      }
+      .hidden {
+        display: none !important;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg4);
+        border-radius: 3px;
+      }
+      @media (max-width: 480px) {
+        .proc-card {
+          padding: 28px 18px;
+        }
+        .result-wrap,
+        .dash-wrap,
+        .details-wrap {
+          padding: 16px 14px;
+        }
+        .sos-btn {
+          width: 155px;
+          height: 155px;
+        }
+        .sos-icon {
+          font-size: 36px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast-wrap" id="toastWrap"></div>
+    <div class="copy-fb" id="copyFb">Copied!</div>
+
+    <!-- SCREEN 1: HOME -->
+    <div class="screen active" id="screen-home">
+      <nav class="nav">
+        <div class="logo">
+          <div class="logo-icon">&#128680;</div>
+          LifeLink
+        </div>
+        <div class="nav-actions">
+          <span style="font-size: 12px; color: var(--text3)"
+            ><span class="status-dot"></span>System Online</span
+          >
+          <button class="nav-btn" onclick="showDashboard()">
+            &#127973; Hospital Dashboard
+          </button>
+        </div>
+      </nav>
+      <div class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-badge">
+          <span class="status-dot" style="background: var(--accent)"></span>
+          AI Emergency Response System
+        </div>
+        <h1>
+          Every Second<br />Counts with <span class="accent">LifeLink</span>
+        </h1>
+        <p>
+          Voice-powered, AI-driven emergency response. From incident to
+          hospital-ready in seconds — zero registration required.
+        </p>
+        <div class="sos-wrap">
+          <div class="sos-ring"></div>
+          <div class="sos-ring sos-ring2"></div>
+          <button class="sos-btn" onclick="onSosClick()">
+            <span class="sos-icon">&#128680;</span>
+            START<br />EMERGENCY
+          </button>
+        </div>
+        <div class="input-area">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              flex-wrap: wrap;
+            "
+          >
+            <button class="loc-pill" id="locPill" onclick="detectLocation()">
+              &#128205; Detect Location
+            </button>
+            <span style="font-size: 13px; color: var(--text3)" id="locText"
+              >Tap to auto-detect your location</span
+            >
+          </div>
+          <div class="input-card">
+            <div class="input-label">
+              <span class="lbl-dot"></span>
+              Describe the Emergency
+            </div>
+            <textarea
+              class="emergency-input"
+              id="emergencyInput"
+              placeholder="Example: Person unconscious after road accident, severe head bleeding, irregular breathing, approximately 40 years old..."
+              rows="4"
+            ></textarea>
+            <div class="voice-row">
+              <button
+                class="mic-btn"
+                id="micBtn"
+                onclick="toggleVoice()"
+                title="Toggle Voice Input"
+              >
+                &#127908;
+              </button>
+              <div style="flex: 1">
+                <div class="voice-status" id="voiceStatus">
+                  Tap mic to speak — any language
+                </div>
+                <div class="wave-wrap" id="waveWrap">
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                </div>
+                <div
+                  id="detectedLangBadge"
+                  style="
+                    display: none;
+                    margin-top: 6px;
+                    font-size: 11px;
+                    padding: 3px 10px;
+                    border-radius: 100px;
+                    background: rgba(167, 139, 250, 0.12);
+                    border: 1px solid rgba(167, 139, 250, 0.3);
+                    color: #a78bfa;
+                    width: fit-content;
+                  "
+                ></div>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 6px;
+                  align-items: flex-end;
+                "
+              >
+                <select
+                  id="langSelect"
+                  style="
+                    background: var(--bg3);
+                    border: 1px solid var(--border2);
+                    border-radius: 8px;
+                    padding: 6px 10px;
+                    color: var(--text2);
+                    font-family: var(--font);
+                    font-size: 12px;
+                    outline: none;
+                    cursor: pointer;
+                    max-width: 160px;
+                  "
+                >
+                  <option value="auto">🌐 Auto-detect</option>
+                  <optgroup label="Indian Languages">
+                    <option value="en" selected>🇮🇳 English (India)</option>
+                    <option value="hi">🇮🇳 Hindi</option>
+                    <option value="kn">🇮🇳 Kannada</option>
+                    <option value="ta">🇮🇳 Tamil</option>
+                    <option value="te">🇮🇳 Telugu</option>
+                    <option value="ml">🇮🇳 Malayalam</option>
+                    <option value="mr">🇮🇳 Marathi</option>
+                    <option value="gu">🇮🇳 Gujarati</option>
+                    <option value="pa">🇮🇳 Punjabi</option>
+                    <option value="bn">🇮🇳 Bengali</option>
+                    <option value="ur">🇮🇳 Urdu</option>
+                  </optgroup>
+                  <optgroup label="Global">
+                    <option value="ar">🇸🇦 Arabic</option>
+                    <option value="zh">🇨🇳 Chinese</option>
+                    <option value="fr">🇫🇷 French</option>
+                    <option value="de">🇩🇪 German</option>
+                    <option value="es">🇪🇸 Spanish</option>
+                    <option value="pt">🇧🇷 Portuguese</option>
+                    <option value="ru">🇷🇺 Russian</option>
+                    <option value="ja">🇯🇵 Japanese</option>
+                    <option value="ko">🇰🇷 Korean</option>
+                    <option value="tr">🇹🇷 Turkish</option>
+                  </optgroup>
+                </select>
+                <button class="quick-btn" onclick="loadSample()">
+                  &#9889; Sample
+                </button>
+              </div>
+            </div>
+            <!-- AssemblyAI API Key row -->
+            <div
+              id="aaiKeyRow"
+              style="
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  color: var(--text3);
+                  white-space: nowrap;
+                "
+                >🔑 Deepgram Key:</span
+              >
+              <input
+                type="password"
+                id="aaiKey"
+                placeholder="7f94bc55ce0fe1a640e58e02b481fc6dfde977bcv"
+                style="
+                  flex: 1;
+                  min-width: 180px;
+                  background: var(--bg3);
+                  border: 1px solid var(--border);
+                  border-radius: 8px;
+                  padding: 7px 12px;
+                  color: var(--text);
+                  font-family: var(--mono);
+                  font-size: 12px;
+                  outline: none;
+                "
+                oninput="saveKey(this.value)"
+              />
+              <a
+                href="https://console.deepgram.com"
+                target="_blank"
+                style="
+                  font-size: 11px;
+                  color: var(--blue-light);
+                  white-space: nowrap;
+                  text-decoration: none;
+                "
+                >Get free key →</a
+              >
+            </div>
+          </div>
+          <div class="input-card">
+            <div class="input-label">
+              <span class="lbl-dot" style="background: var(--blue)"></span>
+              Responder Info (Optional)
+            </div>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 11px"
+            >
+              <input
+                type="text"
+                id="respName"
+                placeholder="Your name"
+                style="
+                  background: var(--bg3);
+                  border: 1px solid var(--border);
+                  border-radius: 8px;
+                  padding: 10px 13px;
+                  color: var(--text);
+                  font-family: var(--font);
+                  font-size: 14px;
+                  outline: none;
+                  width: 100%;
+                "
+              />
+              <input
+                type="tel"
+                id="respPhone"
+                placeholder="Phone number"
+                style="
+                  background: var(--bg3);
+                  border: 1px solid var(--border);
+                  border-radius: 8px;
+                  padding: 10px 13px;
+                  color: var(--text);
+                  font-family: var(--font);
+                  font-size: 14px;
+                  outline: none;
+                  width: 100%;
+                "
+              />
+            </div>
+          </div>
+          <button class="submit-btn" onclick="processEmergency()">
+            &#128640; Analyze &amp; Find Best Hospital &rarr;
+          </button>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-val" id="statCases">0</div>
+          <div class="stat-label">Cases Today</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">10</div>
+          <div class="stat-label">Hospitals Online</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">4.2s</div>
+          <div class="stat-label">Avg Response</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val">98.7%</div>
+          <div class="stat-label">Uptime</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: PROCESSING -->
+    <div class="screen" id="screen-processing">
+      <div class="hero">
+        <div class="proc-card">
+          <div class="spinner-wrap">
+            <div class="sp sp1"></div>
+            <div class="sp sp2"></div>
+            <div class="sp sp3"></div>
+            <div class="sp-icon">&#129504;</div>
+          </div>
+          <div class="proc-title">Analyzing Emergency</div>
+          <div class="proc-step-label" id="procStep">
+            Initializing AI systems...
+          </div>
+          <div id="stepsList"></div>
+          <div id="scanWrap" style="margin-top: 18px; display: none">
+            <div
+              style="
+                font-size: 11px;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                margin-bottom: 9px;
+              "
+            >
+              AERA &mdash; Evaluating Hospitals
+            </div>
+            <div id="scanList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: RESULT -->
+    <div class="screen" id="screen-result">
+      <nav class="nav">
+        <div class="logo">
+          <div class="logo-icon">&#128680;</div>
+          LifeLink
+        </div>
+        <div class="nav-actions">
+          <button class="nav-btn" onclick="showDashboard()">
+            &#127973; Dashboard
+          </button>
+          <button class="nav-btn" onclick="newEmergency()">
+            + New Emergency
+          </button>
+        </div>
+      </nav>
+      <div class="result-wrap">
+        <div class="sev-banner" id="sevBanner">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 14px;
+              flex-wrap: wrap;
+            "
+          >
+            <div class="sev-badge" id="sevBadge">&#9679; CRITICAL</div>
+            <div class="sev-label" id="sevLabel">
+              Immediate intervention required
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 11px;
+              flex-wrap: wrap;
+            "
+          >
+            <div
+              class="caseid-pill"
+              id="caseIdPill"
+              onclick="copyCaseId()"
+              title="Click to copy"
+            >
+              &#128203; <span id="caseIdTxt">LL-000000</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text3)" id="caseTsLabel">
+              Just now
+            </div>
+          </div>
+        </div>
+        <div id="fqSection" class="hidden">
+          <div class="fq-card">
+            <div class="fq-head">&#129302; AI needs more information</div>
+            <div class="fq-q" id="fqQ"></div>
+            <div class="fq-opts" id="fqOpts"></div>
+            <button class="fq-submit" onclick="submitFollowup()">
+              Confirm &amp; Continue &rarr;
+            </button>
+          </div>
+        </div>
+        <div class="result-grid">
+          <div class="rcard full">
+            <div class="card-head">
+              <span class="card-icon">&#127973;</span>
+              <span class="card-title">AERA &mdash; Recommended Hospital</span>
+              <span
+                style="
+                  margin-left: auto;
+                  font-size: 11px;
+                  color: var(--green);
+                  font-weight: 600;
+                "
+                >BEST MATCH</span
+              >
+            </div>
+            <div class="hosp-name" id="hospName">Loading...</div>
+            <div class="tags" id="hospTags"></div>
+            <div class="decision" id="hospDecision">Analyzing...</div>
+            <div class="aera-box" id="aeraBox"></div>
+            <div style="margin-top: 18px">
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--text3);
+                  text-transform: uppercase;
+                  letter-spacing: 0.06em;
+                  margin-bottom: 10px;
+                "
+              >
+                Alternative Options
+              </div>
+              <div id="altHospList"></div>
+            </div>
+          </div>
+          <div class="rcard">
+            <div class="card-head">
+              <span class="card-icon">&#129504;</span>
+              <span class="card-title">AI Analysis</span>
+            </div>
+            <div class="ai-badge">&#10024; LifeLink AI</div>
+            <div class="ai-summary" id="aiSummary">Loading...</div>
+            <div class="vital-grid" id="vitalGrid"></div>
+          </div>
+          <div class="rcard">
+            <div class="card-head">
+              <span class="card-icon">&#128241;</span>
+              <span class="card-title">QR Emergency Identity</span>
+            </div>
+            <div class="qr-wrap">
+              <div id="qrcode"></div>
+              <div class="qr-label">
+                Scan at hospital for instant patient record access
+              </div>
+              <div class="qr-url" id="qrUrlTxt"></div>
+            </div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn-primary" onclick="showDetails()">
+            &#128203; Full Case Details
+          </button>
+          <button class="btn-secondary" onclick="showDashboard()">
+            &#127973; Hospital Dashboard
+          </button>
+          <button class="btn-outline" onclick="newEmergency()">
+            &#128260; New Emergency
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: DETAILS -->
+    <div class="screen" id="screen-details">
+      <nav class="nav">
+        <div class="logo">
+          <div class="logo-icon">&#128680;</div>
+          LifeLink
+        </div>
+        <div class="nav-actions">
+          <button class="nav-btn" onclick="showScreen('screen-result')">
+            &larr; Back
+          </button>
+          <button class="nav-btn" onclick="newEmergency()">
+            + New Emergency
+          </button>
+        </div>
+      </nav>
+      <div class="details-wrap">
+        <div style="margin-bottom: 22px">
+          <div style="font-size: 26px; font-weight: 700; margin-bottom: 8px">
+            Case Details
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              flex-wrap: wrap;
+            "
+          >
+            <div
+              class="sev-badge"
+              id="dSevBadge"
+              style="font-size: 11px; padding: 5px 13px"
+            >
+              CRITICAL
+            </div>
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 13px;
+                color: var(--text3);
+              "
+              id="dCaseId"
+              >LL-000000</span
+            >
+          </div>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">Patient Information</div>
+          <div id="dPatientRows"></div>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">Emergency Description</div>
+          <p
+            style="font-size: 15px; color: var(--text2); line-height: 1.8"
+            id="dDesc"
+          ></p>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">AI Structured Summary</div>
+          <p
+            style="font-size: 15px; color: var(--text2); line-height: 1.8"
+            id="dSummary"
+          ></p>
+          <div class="vital-grid" style="margin-top: 14px" id="dVitals"></div>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">Selected Hospital &amp; Routing</div>
+          <div id="dHospital"></div>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">QR Access</div>
+          <div class="qr-wrap" style="min-height: 170px">
+            <div id="qrcode2"></div>
+            <div class="qr-url" id="dQrUrl"></div>
+          </div>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">Case Timeline</div>
+          <div id="dTimeline"></div>
+        </div>
+        <div class="rcard" style="margin-bottom: 16px">
+          <div class="sec-title">Responder Information</div>
+          <div id="dResponder"></div>
+        </div>
+        <div class="action-row">
+          <button class="btn-primary" onclick="showScreen('screen-result')">
+            &larr; Back to Result
+          </button>
+          <button class="btn-secondary" onclick="showDashboard()">
+            &#127973; Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: DASHBOARD -->
+    <div class="screen" id="screen-dashboard">
+      <nav class="nav">
+        <div class="logo">
+          <div class="logo-icon">&#128680;</div>
+          LifeLink
+        </div>
+        <div class="nav-actions">
+          <button class="nav-btn" onclick="showScreen('screen-home')">
+            &larr; Emergency Intake
+          </button>
+          <div class="live-pill">
+            <span class="status-dot"></span>Live Dashboard
+          </div>
+        </div>
+      </nav>
+      <div class="dash-wrap">
+        <div class="dash-head">
+          <div>
+            <div class="dash-title">&#127973; Hospital Dashboard</div>
+            <div class="dash-sub">
+              Real-time incoming patient feed &middot; Auto-updates every 10s
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <select
+              class="dash-select"
+              id="dashHospFilter"
+              onchange="renderTable()"
+            >
+              <option value="all">All Hospitals</option>
+            </select>
+            <select
+              class="dash-select"
+              id="dashSevFilter"
+              onchange="renderTable()"
+            >
+              <option value="all">All Severities</option>
+              <option value="RED">Critical</option>
+              <option value="YELLOW">Moderate</option>
+              <option value="GREEN">Stable</option>
+            </select>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="mc">
+            <div class="mc-val red" id="mCrit">0</div>
+            <div class="mc-label">Critical</div>
+            <div class="mc-sub">Immediate</div>
+          </div>
+          <div class="mc">
+            <div class="mc-val yellow" id="mMod">0</div>
+            <div class="mc-label">Moderate</div>
+            <div class="mc-sub">Urgent</div>
+          </div>
+          <div class="mc">
+            <div class="mc-val green" id="mStab">0</div>
+            <div class="mc-label">Stable</div>
+            <div class="mc-sub">Non-critical</div>
+          </div>
+          <div class="mc">
+            <div class="mc-val blue" id="mTotal">0</div>
+            <div class="mc-label">Total Cases</div>
+            <div class="mc-sub">All time</div>
+          </div>
+          <div class="mc">
+            <div class="mc-val" style="color: var(--text)">10</div>
+            <div class="mc-label">Hospitals Online</div>
+            <div class="mc-sub">Connected</div>
+          </div>
+        </div>
+        <div class="rcard" style="margin-bottom: 22px">
+          <div class="card-head">
+            <span class="card-icon">&#127973;</span
+            ><span class="card-title">Hospital Bed Availability</span
+            ><span
+              style="margin-left: auto; font-size: 11px; color: var(--green)"
+              >Live</span
+            >
+          </div>
+          <div class="cap-grid" id="capGrid"></div>
+        </div>
+        <div class="rcard">
+          <div class="card-head">
+            <span class="card-icon">&#128203;</span
+            ><span class="card-title">Incoming Patients</span
+            ><span
+              style="margin-left: auto; font-size: 12px; color: var(--text3)"
+              id="lastUpdate"
+              >Auto-refreshing...</span
+            >
+          </div>
+          <div class="cases-table-wrap">
+            <table class="cases-table">
+              <thead>
+                <tr>
+                  <th>Case ID</th>
+                  <th>Severity</th>
+                  <th>Reported By</th>
+                  <th>Condition</th>
+                  <th>Hospital</th>
+                  <th>ETA</th>
+                  <th>Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="casesTbody">
+                <tr>
+                  <td
+                    colspan="8"
+                    style="
+                      text-align: center;
+                      color: var(--text3);
+                      padding: 36px;
+                    "
+                  >
+                    No cases yet. Start an emergency to see it here.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var HOSPITALS = [
+        {
+          id: "H001",
+          name: "Apollo Hospitals",
+          short: "Apollo",
+          lat: 12.9716,
+          lng: 77.5946,
+          beds: 45,
+          icu: 12,
+          spec: ["cardiac", "trauma", "neurology", "icu"],
+          rt: 8,
+          rating: 4.8,
+          addr: "Jayanagar, Bengaluru",
+        },
+        {
+          id: "H002",
+          name: "Manipal Hospital",
+          short: "Manipal",
+          lat: 12.9352,
+          lng: 77.6245,
+          beds: 38,
+          icu: 8,
+          spec: ["trauma", "orthopedic", "burns", "icu"],
+          rt: 11,
+          rating: 4.7,
+          addr: "Old Airport Road, Bengaluru",
+        },
+        {
+          id: "H003",
+          name: "Fortis Hospital",
+          short: "Fortis",
+          lat: 12.961,
+          lng: 77.6387,
+          beds: 22,
+          icu: 5,
+          spec: ["cardiac", "pediatric", "oncology"],
+          rt: 14,
+          rating: 4.6,
+          addr: "Cunningham Road, Bengaluru",
+        },
+        {
+          id: "H004",
+          name: "NIMHANS",
+          short: "NIMHANS",
+          lat: 12.9432,
+          lng: 77.5957,
+          beds: 60,
+          icu: 3,
+          spec: ["neurology", "psychiatry", "neurosurgery"],
+          rt: 10,
+          rating: 4.5,
+          addr: "Hosur Road, Bengaluru",
+        },
+        {
+          id: "H005",
+          name: "Victoria Hospital",
+          short: "Victoria",
+          lat: 12.9698,
+          lng: 77.5798,
+          beds: 80,
+          icu: 15,
+          spec: ["general", "trauma", "burns", "icu"],
+          rt: 7,
+          rating: 4.2,
+          addr: "Fort Road, Bengaluru",
+        },
+        {
+          id: "H006",
+          name: "Narayana Health City",
+          short: "Narayana",
+          lat: 12.8965,
+          lng: 77.6321,
+          beds: 55,
+          icu: 18,
+          spec: ["cardiac", "icu", "transplant", "trauma"],
+          rt: 16,
+          rating: 4.9,
+          addr: "Bommasandra, Bengaluru",
+        },
+        {
+          id: "H007",
+          name: "St Johns Medical College",
+          short: "St.Johns",
+          lat: 12.9345,
+          lng: 77.6187,
+          beds: 35,
+          icu: 9,
+          spec: ["general", "pediatric", "obstetrics"],
+          rt: 9,
+          rating: 4.4,
+          addr: "Sarjapur Road, Bengaluru",
+        },
+        {
+          id: "H008",
+          name: "Sakra World Hospital",
+          short: "Sakra",
+          lat: 12.9621,
+          lng: 77.6978,
+          beds: 18,
+          icu: 6,
+          spec: ["trauma", "orthopedic", "cardiac"],
+          rt: 12,
+          rating: 4.6,
+          addr: "Devarabeesanahalli, Bengaluru",
+        },
+        {
+          id: "H009",
+          name: "BGS Gleneagles Hospital",
+          short: "BGS",
+          lat: 12.8312,
+          lng: 77.5421,
+          beds: 28,
+          icu: 7,
+          spec: ["cardiac", "neuro", "icu"],
+          rt: 18,
+          rating: 4.3,
+          addr: "Kengeri, Bengaluru",
+        },
+        {
+          id: "H010",
+          name: "Sparsh Hospital",
+          short: "Sparsh",
+          lat: 13.0012,
+          lng: 77.5987,
+          beds: 15,
+          icu: 4,
+          spec: ["orthopedic", "trauma", "spine"],
+          rt: 13,
+          rating: 4.5,
+          addr: "Infantry Road, Bengaluru",
+        },
+      ];
+      var currentCase = null,
+        allCases = [],
+        dashInterval = null;
+      var userLoc = {
+        lat: 12.9716,
+        lng: 77.5946,
+        text: "Bengaluru, Karnataka",
+      };
+      var caseCounter = 0,
+        fqAnswer = "";
+      var STEPS = [
+        { icon: "&#127897;", label: "Processing voice and text input" },
+        { icon: "&#129504;", label: "Analyzing with AI classifier" },
+        { icon: "&#9889;", label: "Classifying emergency severity" },
+        { icon: "&#128506;", label: "Running AERA routing algorithm" },
+        { icon: "&#127973;", label: "Scoring hospital candidates" },
+        { icon: "&#128278;", label: "Generating temporary patient ID" },
+        { icon: "&#128241;", label: "Creating QR emergency access" },
+        { icon: "&#128225;", label: "Notifying selected hospital" },
+      ];
+
+      function haversine(lat1, lng1, lat2, lng2) {
+        var R = 6371,
+          dLat = ((lat2 - lat1) * Math.PI) / 180,
+          dLng = ((lng2 - lng1) * Math.PI) / 180;
+        var s = Math.sin(dLat / 2),
+          t = Math.sin(dLng / 2);
+        var a =
+          s * s +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            t *
+            t;
+        return R * 2 * Math.asin(Math.sqrt(a));
+      }
+      function makeCaseId() {
+        return (
+          "LL-" +
+          Date.now().toString(36).toUpperCase() +
+          Math.random().toString(36).substring(2, 5).toUpperCase()
+        );
+      }
+      /* Extract English portion from multilingual input — strips [EN: ...] wrapper */
+      function extractEnglishText(raw) {
+        var m = raw.match(/\[EN:\s*([\s\S]+?)\]/i);
+        return m ? m[1].trim() : raw;
+      }
+      function classifySeverity(text) {
+        var t = extractEnglishText(text).toLowerCase();
+        var red = [
+          "cardiac arrest",
+          "heart attack",
+          "unconscious",
+          "unresponsive",
+          "no pulse",
+          "not breathing",
+          "seizure",
+          "stroke",
+          "severe bleeding",
+          "hemorrhage",
+          "stab",
+          "coma",
+          "anaphylaxis",
+          "overdose",
+          "critical",
+        ];
+        var yellow = [
+          "chest pain",
+          "breathing difficulty",
+          "fracture",
+          "broken",
+          "burn",
+          "moderate bleeding",
+          "high fever",
+          "vomiting blood",
+          "head injury",
+          "concussion",
+          "dislocated",
+          "allergic",
+        ];
+        var green = [
+          "minor cut",
+          "sprain",
+          "mild fever",
+          "nausea",
+          "dizziness",
+          "abdominal pain",
+          "ankle twist",
+          "small wound",
+        ];
+        var i;
+        for (i = 0; i < red.length; i++) {
+          if (t.indexOf(red[i]) !== -1) return "RED";
+        }
+        for (i = 0; i < yellow.length; i++) {
+          if (t.indexOf(yellow[i]) !== -1) return "YELLOW";
+        }
+        for (i = 0; i < green.length; i++) {
+          if (t.indexOf(green[i]) !== -1) return "GREEN";
+        }
+        return "YELLOW";
+      }
+      function runAERA(severity, loc, ctx) {
+        ctx = extractEnglishText(ctx || "");
+        var scored = HOSPITALS.map(function (h) {
+          var dist = haversine(loc.lat, loc.lng, h.lat, h.lng);
+          var distScore = Math.min(dist * 2.5, 40);
+          var sevPenalty = 0;
+          if (severity === "RED") {
+            if (h.spec.indexOf("icu") === -1 && h.spec.indexOf("trauma") === -1)
+              sevPenalty = 30;
+            if (h.icu === 0) sevPenalty += 25;
+          }
+          var bedPenalty = 0;
+          if (h.beds === 0) bedPenalty = 999;
+          else if (h.beds < 5) bedPenalty = 20;
+          else if (h.beds < 15) bedPenalty = 8;
+          var respScore = Math.min(h.rt * 0.8, 20);
+          var icuBonus = severity === "RED" && h.icu >= 5 ? -12 : 0;
+          var specBonus = 0;
+          var cl = ctx.toLowerCase();
+          if (cl.indexOf("cardiac") !== -1 && h.spec.indexOf("cardiac") !== -1)
+            specBonus -= 10;
+          if (cl.indexOf("neuro") !== -1 && h.spec.indexOf("neurology") !== -1)
+            specBonus -= 10;
+          if (cl.indexOf("burn") !== -1 && h.spec.indexOf("burns") !== -1)
+            specBonus -= 8;
+          if (
+            cl.indexOf("fracture") !== -1 &&
+            h.spec.indexOf("orthopedic") !== -1
+          )
+            specBonus -= 8;
+          var total =
+            distScore +
+            sevPenalty +
+            bedPenalty +
+            respScore +
+            icuBonus +
+            specBonus;
+          return {
+            id: h.id,
+            name: h.name,
+            short: h.short,
+            addr: h.addr,
+            beds: h.beds,
+            icu: h.icu,
+            spec: h.spec,
+            rt: h.rt,
+            rating: h.rating,
+            dist: Math.round(dist * 10) / 10,
+            distScore: Math.round(distScore),
+            sevPenalty: Math.round(sevPenalty),
+            bedPenalty: Math.round(bedPenalty),
+            respScore: Math.round(respScore),
+            icuBonus: Math.round(icuBonus),
+            total: Math.round(total * 10) / 10,
+            eta: Math.ceil(h.rt + dist * 1.5),
+          };
+        });
+        scored.sort(function (a, b) {
+          return a.total - b.total;
+        });
+        return {
+          best: scored[0],
+          all: scored,
+          reason: buildReason(scored[0], severity, ctx),
+        };
+      }
+      function buildReason(h, severity, ctx) {
+        var parts = [];
+        if (h.dist < 5) parts.push("only " + h.dist + "km away");
+        else parts.push(h.dist + "km from location");
+        if (severity === "RED" && h.spec.indexOf("icu") !== -1)
+          parts.push("has " + h.icu + " ICU beds");
+        if (severity === "RED" && h.spec.indexOf("trauma") !== -1)
+          parts.push("Level-1 Trauma Centre");
+        if (h.beds > 30) parts.push("high bed availability (" + h.beds + ")");
+        if (h.rt < 10) parts.push("fastest response (" + h.rt + " min)");
+        var cl = (ctx || "").toLowerCase();
+        if (cl.indexOf("cardiac") !== -1 && h.spec.indexOf("cardiac") !== -1)
+          parts.push("specialized cardiac unit");
+        if (cl.indexOf("neuro") !== -1 && h.spec.indexOf("neurology") !== -1)
+          parts.push("neurology dept");
+        return "Selected " + h.name + " — " + parts.join(", ") + ".";
+      }
+      function buildSummary(text, severity, hosp) {
+        var t = extractEnglishText(text).toLowerCase();
+        var cond = "Unknown emergency condition";
+        if (t.indexOf("cardiac") !== -1 || t.indexOf("heart") !== -1)
+          cond = "Suspected cardiac event";
+        else if (
+          t.indexOf("unconscious") !== -1 ||
+          t.indexOf("unresponsive") !== -1
+        )
+          cond = "Loss of consciousness";
+        else if (t.indexOf("bleed") !== -1) cond = "Active hemorrhage";
+        else if (t.indexOf("fracture") !== -1 || t.indexOf("broken") !== -1)
+          cond = "Suspected fracture";
+        else if (t.indexOf("seizure") !== -1) cond = "Seizure episode";
+        else if (t.indexOf("stroke") !== -1) cond = "Suspected stroke (CVA)";
+        else if (t.indexOf("burn") !== -1) cond = "Burn injury";
+        else if (t.indexOf("chest") !== -1)
+          cond = "Chest pain — cardiac suspected";
+        var labels = {
+          RED: "Critical — immediate life-threatening",
+          YELLOW: "Moderate — urgent attention required",
+          GREEN: "Stable — needs evaluation",
+        };
+        var prefix =
+          severity === "RED"
+            ? "Immediate resuscitation and ALS protocols to be activated. "
+            : severity === "YELLOW"
+              ? "Prompt evaluation and monitoring required. "
+              : "";
+        return (
+          "Patient presenting with " +
+          cond +
+          ". Severity: " +
+          labels[severity] +
+          ". " +
+          prefix +
+          "Routed to " +
+          hosp.name +
+          " (ETA ~" +
+          hosp.eta +
+          " min). Emergency team should be on standby."
+        );
+      }
+      function buildVitals(text, severity) {
+        var t = extractEnglishText(text).toLowerCase(),
+          v = [];
+        if (
+          t.indexOf("cardiac") !== -1 ||
+          t.indexOf("pulse") !== -1 ||
+          t.indexOf("heart") !== -1
+        )
+          v.push({
+            k: "Pulse",
+            val: severity === "RED" ? "Not detected" : "45-55 bpm",
+          });
+        if (t.indexOf("breath") !== -1 || t.indexOf("respiratory") !== -1)
+          v.push({
+            k: "Breathing",
+            val: severity === "RED" ? "Irregular" : "Labored",
+          });
+        var con = "Conscious";
+        if (t.indexOf("unconscious") !== -1 || t.indexOf("unresponsive") !== -1)
+          con = "Unresponsive";
+        else if (t.indexOf("confus") !== -1) con = "Confused";
+        v.push({ k: "Consciousness", val: con });
+        v.push({
+          k: "Severity",
+          val: { RED: "CRITICAL", YELLOW: "MODERATE", GREEN: "STABLE" }[
+            severity
+          ],
+        });
+        if (t.indexOf("bleed") !== -1) v.push({ k: "Bleeding", val: "Active" });
+        v.push({
+          k: "ETA",
+          val:
+            currentCase && currentCase.hosp
+              ? "~" + currentCase.hosp.eta + " min"
+              : "~12 min",
+        });
+        return v;
+      }
+      function buildFollowup(text) {
+        var t = extractEnglishText(text).toLowerCase();
+        if (t.indexOf("unconscious") !== -1 || t.indexOf("unresponsive") !== -1)
+          return {
+            q: "How long has the patient been unconscious?",
+            opts: [
+              "Just now (<1 min)",
+              "1-5 minutes",
+              "5-15 minutes",
+              "More than 15 min",
+            ],
+          };
+        if (t.indexOf("bleed") !== -1 || t.indexOf("blood") !== -1)
+          return {
+            q: "How severe is the bleeding?",
+            opts: [
+              "Minor (superficial)",
+              "Moderate (soaking cloth)",
+              "Severe (uncontrolled)",
+              "Arterial (spurting)",
+            ],
+          };
+        if (t.indexOf("cardiac") !== -1 || t.indexOf("heart") !== -1)
+          return {
+            q: "Is the patient responsive at all?",
+            opts: [
+              "Yes, talking",
+              "Minimally responsive",
+              "No response",
+              "CPR in progress",
+            ],
+          };
+        if (t.indexOf("pain") !== -1)
+          return {
+            q: "What is the pain level?",
+            opts: [
+              "1-3 (Mild)",
+              "4-6 (Moderate)",
+              "7-9 (Severe)",
+              "10 (Unbearable)",
+            ],
+          };
+        return {
+          q: "Can the patient communicate?",
+          opts: ["Yes clearly", "Partially", "Cannot speak", "Unconscious"],
+        };
+      }
+
+      function showScreen(id) {
+        var ss = document.querySelectorAll(".screen");
+        for (var i = 0; i < ss.length; i++) ss[i].classList.remove("active");
+        document.getElementById(id).classList.add("active");
+        window.scrollTo(0, 0);
+      }
+      function showDashboard() {
+        buildDashboard();
+        showScreen("screen-dashboard");
+        if (dashInterval) clearInterval(dashInterval);
+        dashInterval = setInterval(function () {
+          HOSPITALS.forEach(function (h) {
+            h.beds = Math.max(0, h.beds + Math.floor(Math.random() * 3) - 1);
+            h.icu = Math.max(
+              0,
+              Math.min(h.icu + (Math.random() > 0.8 ? -1 : 0), 20),
+            );
+          });
+          if (
+            document
+              .getElementById("screen-dashboard")
+              .classList.contains("active")
+          )
+            buildDashboard();
+        }, 10000);
+      }
+      function showDetails() {
+        buildDetails();
+        showScreen("screen-details");
+      }
+      function newEmergency() {
+        document.getElementById("emergencyInput").value = "";
+        document.getElementById("respName").value = "";
+        document.getElementById("respPhone").value = "";
+        if (isListening) stopListening();
+        var badge = document.getElementById("detectedLangBadge");
+        if (badge) badge.style.display = "none";
+        showScreen("screen-home");
+      }
+
+      function detectLocation() {
+        var pill = document.getElementById("locPill"),
+          txt = document.getElementById("locText");
+        pill.textContent = "Detecting...";
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (pos) {
+              userLoc = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                text: "GPS Detected",
+              };
+              pill.className = "loc-pill ok";
+              pill.textContent = "Location Detected";
+              txt.textContent =
+                pos.coords.latitude.toFixed(4) +
+                ", " +
+                pos.coords.longitude.toFixed(4);
+              showToast("GPS location detected", "success");
+            },
+            function () {
+              pill.className = "loc-pill ok";
+              pill.textContent = "Bengaluru, KA";
+              txt.textContent = "Using default: Bengaluru, Karnataka";
+              showToast("Using default location: Bengaluru", "info");
+            },
+            { timeout: 5000 },
+          );
+        } else {
+          pill.className = "loc-pill ok";
+          pill.textContent = "Bengaluru, KA";
+          txt.textContent = "Using default: Bengaluru";
+        }
+      }
+
+      /* ════════════════════════════════════════════════════════
+   VOICE ENGINE v6 — Deepgram Real-Time WebSocket STT
+   ✅ Free tier: 200 hrs/month, no credit card
+   ✅ Works on file://, localhost, anywhere
+   ✅ 30+ languages including Hindi, Tamil, etc.
+   ✅ Real streaming, instant transcription
+   Get free key: https://console.deepgram.com
+   ════════════════════════════════════════════════════════ */
+
+      var dgSocket = null;
+      var dgStream = null;
+      var dgProcessor = null;
+      var dgContext = null;
+      var isListening = false;
+      var recognition = null;
+
+      var DG_LANG_CODES = {
+        auto: "multi",
+        en: "en-IN",
+        hi: "hi",
+        kn: "kn",
+        ta: "ta",
+        te: "te",
+        ml: "ml",
+        mr: "mr",
+        gu: "gu",
+        pa: "pa",
+        bn: "bn",
+        ur: "ur",
+        ar: "ar",
+        zh: "zh-CN",
+        fr: "fr",
+        de: "de",
+        es: "es",
+        pt: "pt-BR",
+        ru: "ru",
+        ja: "ja",
+        ko: "ko",
+        tr: "tr",
+      };
+      var LANG_NAMES = {
+        auto: "Auto",
+        en: "English",
+        hi: "Hindi",
+        kn: "Kannada",
+        ta: "Tamil",
+        te: "Telugu",
+        ml: "Malayalam",
+        mr: "Marathi",
+        gu: "Gujarati",
+        pa: "Punjabi",
+        bn: "Bengali",
+        ur: "Urdu",
+        ar: "Arabic",
+        zh: "Chinese",
+        fr: "French",
+        de: "German",
+        es: "Spanish",
+        pt: "Portuguese",
+        ru: "Russian",
+        ja: "Japanese",
+        ko: "Korean",
+        tr: "Turkish",
+      };
+
+      function saveKey(v) {
+        try {
+          localStorage.setItem("dg_key", v.trim());
+        } catch (e) {}
+        var el = document.getElementById("aaiKey");
+        if (el)
+          el.style.borderColor = v.trim().length > 10 ? "var(--green)" : "";
+      }
+      function getKey() {
+        var el = document.getElementById("aaiKey");
+        var k = (el && el.value.trim()) || localStorage.getItem("dg_key") || "";
+        if (el && !el.value.trim() && k) {
+          el.value = k;
+          el.style.borderColor = "var(--green)";
+        }
+        return k;
+      }
+
+      window.addEventListener("load", function () {
+        var saved = localStorage.getItem("dg_key") || "";
+        var el = document.getElementById("aaiKey");
+        if (el && saved) {
+          el.value = saved;
+          el.style.borderColor = "var(--green)";
+        }
+        preloadDemos();
+        detectLocation();
+      });
+
+      function toggleVoice() {
+        if (isListening) stopListening();
+        else startListening();
+      }
+
+      async function startListening() {
+        var apiKey = getKey();
+        if (!apiKey) {
+          showToast("Paste your free Deepgram API key first", "error");
+          document.getElementById("aaiKey").focus();
+          document.getElementById("aaiKey").style.borderColor = "var(--accent)";
+          setTimeout(function () {
+            document.getElementById("aaiKey").style.borderColor = "";
+          }, 2000);
+          return;
+        }
+
+        // Get mic
+        try {
+          dgStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false,
+          });
+        } catch (e) {
+          showToast("Microphone denied — allow mic in browser", "error");
+          document.getElementById("voiceStatus").innerHTML =
+            "🚫 Click 🔒 in address bar → allow Microphone → refresh";
+          return;
+        }
+
+        var sel = document.getElementById("langSelect").value;
+        var langCode = DG_LANG_CODES[sel] || "en-IN";
+        var isMulti = sel === "auto";
+
+        // Build Deepgram WebSocket URL
+        var params = new URLSearchParams({
+          model: isMulti ? "nova-2" : "nova-2",
+          language: isMulti ? "multi" : langCode,
+          smart_format: "true",
+          interim_results: "true",
+          punctuate: "true",
+          encoding: "linear16",
+          sample_rate: "16000",
+          channels: "1",
+        });
+        var wsUrl = "wss://api.deepgram.com/v1/listen?" + params.toString();
+
+        dgSocket = new WebSocket(wsUrl, ["token", apiKey]);
+        dgSocket.binaryType = "arraybuffer";
+
+        dgSocket.onopen = function () {
+          // Setup AudioContext → PCM stream
+          dgContext = new (window.AudioContext || window.webkitAudioContext)({
+            sampleRate: 16000,
+          });
+          var source = dgContext.createMediaStreamSource(dgStream);
+          dgProcessor = dgContext.createScriptProcessor(2048, 1, 1);
+          source.connect(dgProcessor);
+          dgProcessor.connect(dgContext.destination);
+
+          dgProcessor.onaudioprocess = function (e) {
+            if (!dgSocket || dgSocket.readyState !== WebSocket.OPEN) return;
+            var input = e.inputBuffer.getChannelData(0);
+            var pcm = new Int16Array(input.length);
+            for (var i = 0; i < input.length; i++)
+              pcm[i] = Math.max(-32768, Math.min(32767, input[i] * 32767));
+            dgSocket.send(pcm.buffer);
+          };
+
+          isListening = true;
+          document.getElementById("micBtn").classList.add("listening");
+          document.getElementById("micBtn").innerHTML = "&#9209;";
+          document.getElementById("voiceStatus").textContent =
+            "🔴 Live — speak in " +
+            (LANG_NAMES[sel] || "English") +
+            ". Tap ⏹ to stop";
+          document.getElementById("voiceStatus").className =
+            "voice-status active";
+          document.getElementById("waveWrap").className = "wave-wrap show";
+          showToast("🎙 Voice live — speak now!", "success");
+        };
+
+        dgSocket.onmessage = function (e) {
+          try {
+            var data = JSON.parse(e.data);
+            var alt =
+              data.channel &&
+              data.channel.alternatives &&
+              data.channel.alternatives[0];
+            if (!alt) return;
+            var text = alt.transcript || "";
+            var isFinal = data.is_final;
+            var detectedLang = data.channel && data.channel.detected_language;
+
+            if (text.trim()) {
+              if (isFinal) {
+                var inp = document.getElementById("emergencyInput");
+                inp.value = (inp.value + " " + text.trim()).trim();
+                document.getElementById("voiceStatus").textContent =
+                  "🔴 Listening… ✓ " + text.trim().substring(0, 50);
+                if (
+                  detectedLang &&
+                  detectedLang !== "en" &&
+                  detectedLang !== langCode
+                ) {
+                  showDetectedLangBadge(detectedLang, text.trim());
+                  translateWithClaude(text.trim(), detectedLang);
+                }
+              } else {
+                document.getElementById("voiceStatus").textContent =
+                  "🎙 " + text.substring(0, 70) + "…";
+              }
+            }
+          } catch (err) {}
+        };
+
+        dgSocket.onerror = function () {
+          showToast("Deepgram connection failed — check your API key", "error");
+          stopListening();
+        };
+
+        dgSocket.onclose = function (e) {
+          if (isListening) {
+            if (e.code === 1008)
+              showToast(
+                "Deepgram: invalid API key — get one free at deepgram.com",
+                "error",
+              );
+            else if (e.code === 1011)
+              showToast(
+                "Deepgram: quota exceeded — check your account",
+                "error",
+              );
+            else showToast("Voice connection closed", "info");
+            stopListening();
+          }
+        };
+      }
+
+      function stopListening() {
+        isListening = false;
+        if (dgProcessor) {
+          try {
+            dgProcessor.disconnect();
+          } catch (e) {}
+          dgProcessor = null;
+        }
+        if (dgContext) {
+          try {
+            dgContext.close();
+          } catch (e) {}
+          dgContext = null;
+        }
+        if (dgStream) {
+          dgStream.getTracks().forEach(function (t) {
+            t.stop();
+          });
+          dgStream = null;
+        }
+        if (dgSocket && dgSocket.readyState === WebSocket.OPEN) {
+          try {
+            dgSocket.send(JSON.stringify({ type: "CloseStream" }));
+          } catch (e) {}
+          try {
+            dgSocket.close();
+          } catch (e) {}
+        }
+        dgSocket = null;
+
+        document.getElementById("micBtn").classList.remove("listening");
+        document.getElementById("micBtn").innerHTML = "&#127908;";
+        document.getElementById("waveWrap").className = "wave-wrap";
+        var cur = (
+          document.getElementById("emergencyInput").value || ""
+        ).trim();
+        document.getElementById("voiceStatus").textContent = cur
+          ? "✅ Captured — review & submit"
+          : "Tap mic to try again";
+        document.getElementById("voiceStatus").className = "voice-status";
+        if (cur) showToast("Voice captured!", "success");
+      }
+
+      function translateWithClaude(text, fromLang) {
+        fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 200,
+            messages: [
+              {
+                role: "user",
+                content:
+                  "Translate this emergency text to English. Return ONLY the translation:\n" +
+                  text,
+              },
+            ],
+          }),
+        })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (d) {
+            var t = (
+              (d.content && d.content[0] && d.content[0].text) ||
+              ""
+            ).trim();
+            if (t && t !== text) {
+              var inp = document.getElementById("emergencyInput");
+              inp.value = inp.value.replace(text, t);
+              showToast("Auto-translated to English", "success");
+            }
+          })
+          .catch(function () {});
+      }
+
+      function showDetectedLangBadge(lang, text) {
+        var badge = document.getElementById("detectedLangBadge");
+        if (badge) {
+          badge.style.display = "inline-flex";
+          badge.innerHTML =
+            "🌐 Detected: " + lang + ' — "' + text.substring(0, 35) + '…"';
+        }
+      }
+      function resetVoiceUI() {
+        document.getElementById("voiceStatus").textContent =
+          "Tap mic to record";
+        document.getElementById("voiceStatus").className = "voice-status";
+        document.getElementById("waveWrap").className = "wave-wrap";
+      }
+      function onSosClick() {
+        document.getElementById("emergencyInput").focus();
+        document
+          .getElementById("emergencyInput")
+          .scrollIntoView({ behavior: "smooth" });
+        if (!isListening) startListening();
+        showToast("Emergency mode — speak in any language", "info");
+      }
+      function loadSample() {
+        if (isListening) stopListening();
+        document.getElementById("emergencyInput").value =
+          "Cardiac arrest, male around 55, unresponsive, no pulse detected, bystander performing CPR";
+        showToast("Sample scenario loaded", "info");
+      }
+
+      function processEmergency() {
+        var desc = document.getElementById("emergencyInput").value.trim();
+        if (!desc || desc.length < 8) {
+          showToast("Please describe the emergency first", "error");
+          return;
+        }
+        if (isListening) stopListening();
+        showScreen("screen-processing");
+        animateProcessing(desc);
+      }
+      function animateProcessing(desc) {
+        var list = document.getElementById("stepsList");
+        list.innerHTML = "";
+        STEPS.forEach(function (s) {
+          var d = document.createElement("div");
+          d.className = "step-item";
+          d.innerHTML =
+            '<span class="step-icon">' +
+            s.icon +
+            "</span><span>" +
+            s.label +
+            '</span><span class="step-check">pending</span>';
+          list.appendChild(d);
+        });
+        var items = list.querySelectorAll(".step-item"),
+          i = 0;
+        function next() {
+          if (i > 0) {
+            items[i - 1].classList.remove("active");
+            items[i - 1].classList.add("done");
+            items[i - 1].querySelector(".step-check").textContent = "done";
+          }
+          if (i >= items.length) {
+            showHospitalScan(desc);
+            return;
+          }
+          items[i].classList.add("active");
+          items[i].querySelector(".step-check").textContent = "...";
+          document.getElementById("procStep").textContent =
+            STEPS[i].label + "...";
+          i++;
+          setTimeout(next, 280 + Math.floor(Math.random() * 350));
+        }
+        next();
+      }
+      function showHospitalScan(desc) {
+        var wrap = document.getElementById("scanWrap"),
+          sl = document.getElementById("scanList");
+        wrap.style.display = "block";
+        sl.innerHTML = "";
+        var severity = classifySeverity(desc);
+        var result = runAERA(severity, userLoc, desc);
+        var top5 = result.all.slice(0, 5),
+          idx = 0;
+        function nextH() {
+          if (idx >= top5.length) {
+            setTimeout(function () {
+              finalizeCase(desc, severity, result);
+            }, 600);
+            return;
+          }
+          var h = top5[idx],
+            d = document.createElement("div");
+          d.className = "hosp-scan" + (idx === 0 ? " best" : "");
+          d.innerHTML =
+            "<span>" +
+            (idx === 0 ? "&#9989; " : "&#11036; ") +
+            h.name +
+            '</span><span class="hosp-score' +
+            (idx === 0 ? " best" : "") +
+            '">Score:' +
+            h.total +
+            " | " +
+            h.dist +
+            "km</span>";
+          sl.appendChild(d);
+          idx++;
+          setTimeout(nextH, 230);
+        }
+        nextH();
+      }
+      function finalizeCase(desc, severity, aeraResult) {
+        caseCounter++;
+        document.getElementById("statCases").textContent = caseCounter;
+        var caseId = makeCaseId(),
+          now = new Date(),
+          hosp = aeraResult.best;
+        var summary = buildSummary(desc, severity, hosp),
+          fq = buildFollowup(desc);
+        currentCase = {
+          caseId: caseId,
+          desc: desc,
+          severity: severity,
+          hosp: hosp,
+          aera: aeraResult,
+          summary: summary,
+          fq: fq,
+          fqAnswer: "",
+          ts: now.toISOString(),
+          respName: document.getElementById("respName").value || "Anonymous",
+          respPhone:
+            document.getElementById("respPhone").value || "Not provided",
+          loc: userLoc,
+          status: "Active",
+        };
+        currentCase.vitals = buildVitals(desc, severity);
+        allCases.unshift(currentCase);
+        buildResultScreen(currentCase);
+        showScreen("screen-result");
+        showToast("Emergency case created: " + caseId, "success");
+      }
+
+      function buildResultScreen(c) {
+        var sc = { RED: "red", YELLOW: "yellow", GREEN: "green" }[c.severity];
+        var labels = {
+          RED: "Immediate intervention required",
+          YELLOW: "Urgent — seek medical help now",
+          GREEN: "Stable — monitor and evaluate",
+        };
+        document.getElementById("sevBanner").className = "sev-banner " + sc;
+        document.getElementById("sevBadge").className = "sev-badge " + sc;
+        document.getElementById("sevBadge").textContent = "● " + c.severity;
+        document.getElementById("sevLabel").textContent = labels[c.severity];
+        document.getElementById("caseIdTxt").textContent = c.caseId;
+        document.getElementById("caseTsLabel").textContent = new Date(
+          c.ts,
+        ).toLocaleTimeString();
+        document.getElementById("hospName").textContent = c.hosp.name;
+        var th = "";
+        th += '<span class="tag hi">' + c.hosp.dist + "km</span>";
+        th += '<span class="tag">ETA ~' + c.hosp.eta + " min</span>";
+        th += '<span class="tag">' + c.hosp.beds + " beds</span>";
+        th += '<span class="tag hi">ICU: ' + c.hosp.icu + "</span>";
+        th += '<span class="tag">' + c.hosp.rating + "/5</span>";
+        for (var si = 0; si < c.hosp.spec.length; si++)
+          th += '<span class="tag">' + c.hosp.spec[si] + "</span>";
+        document.getElementById("hospTags").innerHTML = th;
+        document.getElementById("hospDecision").textContent = c.aera.reason;
+        var h = c.hosp;
+        var aeraRows = [
+          ["Distance", h.distScore, 40, "#3B82F6"],
+          ["Severity Match", Math.max(0, 30 - h.sevPenalty), 30, "#EF4444"],
+          ["Bed Capacity", Math.max(0, 20 - h.bedPenalty), 20, "#38A169"],
+          ["Response Time", Math.max(0, 20 - h.respScore), 20, "#D69E2E"],
+        ];
+        var ab =
+          '<div class="aera-title">AERA Score Breakdown (lower total = better match)</div>';
+        for (var ai = 0; ai < aeraRows.length; ai++) {
+          var ar = aeraRows[ai],
+            pct = Math.round((ar[1] / ar[2]) * 100);
+          ab +=
+            '<div class="aera-row"><span class="aera-label">' +
+            ar[0] +
+            '</span><div class="aera-track"><div class="aera-fill" style="width:' +
+            pct +
+            "%;background:" +
+            ar[3] +
+            '"></div></div><span class="aera-val">' +
+            ar[1] +
+            "/" +
+            ar[2] +
+            "</span></div>";
+        }
+        ab +=
+          '<div style="font-size:11px;color:var(--text3);margin-top:7px">Total: ' +
+          h.total +
+          " | Rank #1 of " +
+          HOSPITALS.length +
+          "</div>";
+        document.getElementById("aeraBox").innerHTML = ab;
+        var altHtml = "";
+        var altList = c.aera.all.slice(1, 4);
+        for (var ki = 0; ki < altList.length; ki++) {
+          var ah = altList[ki];
+          altHtml +=
+            '<div class="alt-hosp"><div><div class="alt-name">' +
+            ah.name +
+            '</div><div class="alt-detail">' +
+            ah.dist +
+            "km · ETA ~" +
+            ah.eta +
+            "min · " +
+            ah.beds +
+            " beds · " +
+            ah.spec.slice(0, 2).join(", ") +
+            '</div></div><div class="alt-score">' +
+            ah.total +
+            "</div></div>";
+        }
+        document.getElementById("altHospList").innerHTML = altHtml;
+        document.getElementById("aiSummary").textContent = c.summary;
+        var vhHtml = "";
+        for (var vi = 0; vi < c.vitals.length; vi++)
+          vhHtml +=
+            '<div class="vital"><div class="vital-key">' +
+            c.vitals[vi].k +
+            '</div><div class="vital-val">' +
+            c.vitals[vi].val +
+            "</div></div>";
+        document.getElementById("vitalGrid").innerHTML = vhHtml;
+        var qrEl = document.getElementById("qrcode");
+        qrEl.innerHTML = "";
+        // Compact QR data — only key fields to keep QR scannable
+        var qrData = "ID:" + c.caseId
+          + " SEV:" + c.severity
+          + " HOSP:" + c.hosp.name
+          + " ETA:" + c.hosp.eta + "min"
+          + " ICU:" + c.hosp.icu
+          + " RESP:" + (c.respName || "Anon")
+          + " PH:" + (c.respPhone || "NA")
+          + " DESC:" + c.desc.substring(0, 60);
+        document.getElementById("qrUrlTxt").textContent = "Case " + c.caseId + " · " + c.severity + " · " + c.hosp.name;
+        try {
+          new QRCode(qrEl, {
+            text: qrData,
+            width: 150,
+            height: 150,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.L,
+          });
+        } catch (e) { qrEl.innerHTML = "<p style='color:red;font-size:11px'>QR error: " + e + "</p>"; }
+        document.getElementById("fqQ").textContent = c.fq.q;
+        var optsHtml = "";
+        for (var oi = 0; oi < c.fq.opts.length; oi++) {
+          var optVal = c.fq.opts[oi].replace(/"/g, "&quot;");
+          optsHtml +=
+            '<button class="fq-opt" onclick="selectFq(this,\'' +
+            c.fq.opts[oi].replace(/'/g, "&#39;") +
+            "')\">" +
+            c.fq.opts[oi] +
+            "</button>";
+        }
+        document.getElementById("fqOpts").innerHTML = optsHtml;
+        document.getElementById("fqSection").classList.remove("hidden");
+        fqAnswer = "";
+      }
+      function selectFq(el, val) {
+        var opts = document.querySelectorAll(".fq-opt");
+        for (var i = 0; i < opts.length; i++) opts[i].classList.remove("sel");
+        el.classList.add("sel");
+        fqAnswer = val;
+      }
+      function submitFollowup() {
+        if (!fqAnswer) {
+          showToast("Please select an answer", "error");
+          return;
+        }
+        if (currentCase) currentCase.fqAnswer = fqAnswer;
+        document.getElementById("fqSection").classList.add("hidden");
+        showToast("Follow-up information sent to hospital", "success");
+      }
+      function copyCaseId() {
+        if (!currentCase) return;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(currentCase.caseId).then(function () {
+            var fb = document.getElementById("copyFb");
+            fb.classList.add("show");
+            setTimeout(function () {
+              fb.classList.remove("show");
+            }, 2000);
+          });
+        }
+      }
+
+      function buildDetails() {
+        var c = currentCase;
+        if (!c) return;
+        var sc = { RED: "red", YELLOW: "yellow", GREEN: "green" }[c.severity];
+        document.getElementById("dSevBadge").className = "sev-badge " + sc;
+        document.getElementById("dSevBadge").textContent = "● " + c.severity;
+        document.getElementById("dCaseId").textContent = c.caseId;
+        document.getElementById("dDesc").textContent = c.desc;
+        document.getElementById("dSummary").textContent = c.summary;
+        var ph =
+          '<div class="detail-row"><span class="detail-key">Case ID</span><span class="detail-val">' +
+          c.caseId +
+          "</span></div>";
+        ph +=
+          '<div class="detail-row"><span class="detail-key">Patient Status</span><span class="detail-val">Temporary Identity — No prior registration</span></div>';
+        ph +=
+          '<div class="detail-row"><span class="detail-key">Severity</span><span class="detail-val">' +
+          c.severity +
+          "</span></div>";
+        ph +=
+          '<div class="detail-row"><span class="detail-key">Timestamp</span><span class="detail-val">' +
+          new Date(c.ts).toLocaleString() +
+          "</span></div>";
+        ph +=
+          '<div class="detail-row"><span class="detail-key">Location</span><span class="detail-val">' +
+          c.loc.text +
+          "</span></div>";
+        if (c.fqAnswer)
+          ph +=
+            '<div class="detail-row"><span class="detail-key">Follow-up</span><span class="detail-val">' +
+            c.fq.q +
+            ": " +
+            c.fqAnswer +
+            "</span></div>";
+        document.getElementById("dPatientRows").innerHTML = ph;
+        var vhHtml = "";
+        for (var vi = 0; vi < c.vitals.length; vi++)
+          vhHtml +=
+            '<div class="vital"><div class="vital-key">' +
+            c.vitals[vi].k +
+            '</div><div class="vital-val">' +
+            c.vitals[vi].val +
+            "</div></div>";
+        document.getElementById("dVitals").innerHTML = vhHtml;
+        var hHtml = '<div class="hosp-name">' + c.hosp.name + "</div>";
+        hHtml +=
+          '<div class="tags"><span class="tag hi">' +
+          c.hosp.dist +
+          'km</span><span class="tag">ETA ~' +
+          c.hosp.eta +
+          ' min</span><span class="tag">' +
+          c.hosp.beds +
+          ' beds</span><span class="tag hi">ICU: ' +
+          c.hosp.icu +
+          "</span></div>";
+        hHtml += '<div class="decision">' + c.aera.reason + "</div>";
+        hHtml +=
+          '<div style="font-size:13px;color:var(--text3);margin-top:10px">' +
+          c.hosp.addr +
+          "</div>";
+        document.getElementById("dHospital").innerHTML = hHtml;
+        var qrData2 = "ID:" + c.caseId
+          + " SEV:" + c.severity
+          + " HOSP:" + c.hosp.name
+          + " ETA:" + c.hosp.eta + "min"
+          + " ICU:" + c.hosp.icu
+          + " RESP:" + (c.respName || "Anon")
+          + " PH:" + (c.respPhone || "NA")
+          + " DESC:" + c.desc.substring(0, 60);
+        document.getElementById("dQrUrl").textContent = "Case " + c.caseId + " · " + c.severity + " · " + c.hosp.name;
+        var qr2El = document.getElementById("qrcode2");
+        qr2El.innerHTML = "";
+        try {
+          new QRCode(qr2El, {
+            text: qrData2,
+            width: 130,
+            height: 130,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M,
+          });
+        } catch (e) {}
+        var base = new Date(c.ts);
+        var evs = [
+          { off: 0, ev: "Emergency reported — case " + c.caseId + " created" },
+          { off: 2, ev: "AI severity classification: " + c.severity },
+          { off: 4, ev: "AERA selected: " + c.hosp.name },
+          { off: 6, ev: "QR code generated for hospital access" },
+          { off: 8, ev: "Hospital notified — team on standby" },
+          { off: c.hosp.eta * 60, ev: "Estimated patient arrival at hospital" },
+        ];
+        var tlHtml = "";
+        for (var ti = 0; ti < evs.length; ti++) {
+          var t2 = new Date(base.getTime() + evs[ti].off * 1000);
+          tlHtml +=
+            '<div class="tl-item"><div class="tl-dot"></div><div class="tl-time">' +
+            t2.toLocaleTimeString() +
+            '</div><div class="tl-event">' +
+            evs[ti].ev +
+            "</div></div>";
+        }
+        document.getElementById("dTimeline").innerHTML = tlHtml;
+        document.getElementById("dResponder").innerHTML =
+          '<div class="detail-row"><span class="detail-key">Name</span><span class="detail-val">' +
+          c.respName +
+          '</span></div><div class="detail-row"><span class="detail-key">Phone</span><span class="detail-val">' +
+          c.respPhone +
+          "</span></div>";
+      }
+
+      function buildDashboard() {
+        var hf = document.getElementById("dashHospFilter");
+        if (hf.options.length === 1) {
+          HOSPITALS.forEach(function (h) {
+            var opt = document.createElement("option");
+            opt.value = h.id;
+            opt.textContent = h.short;
+            hf.appendChild(opt);
+          });
+        }
+        var red = 0,
+          yellow = 0,
+          green = 0;
+        allCases.forEach(function (c) {
+          if (c.severity === "RED") red++;
+          else if (c.severity === "YELLOW") yellow++;
+          else green++;
+        });
+        document.getElementById("mCrit").textContent = red;
+        document.getElementById("mMod").textContent = yellow;
+        document.getElementById("mStab").textContent = green;
+        document.getElementById("mTotal").textContent = allCases.length;
+        var capHtml = "";
+        HOSPITALS.forEach(function (h) {
+          var pct = Math.round((h.beds / (h.beds + 20)) * 100);
+          var col = pct > 70 ? "#38A169" : pct > 40 ? "#D69E2E" : "#EF4444";
+          capHtml +=
+            '<div class="cap-item"><div class="cap-name">' +
+            h.short +
+            '</div><div class="cap-detail">' +
+            h.beds +
+            " gen · " +
+            h.icu +
+            ' ICU</div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:' +
+            pct +
+            "%;background:" +
+            col +
+            '"></div></div><div class="cap-pct">' +
+            pct +
+            "% available</div></div>";
+        });
+        document.getElementById("capGrid").innerHTML = capHtml;
+        document.getElementById("lastUpdate").textContent =
+          "Updated: " + new Date().toLocaleTimeString();
+        renderTable();
+      }
+      function renderTable() {
+        var tbody = document.getElementById("casesTbody");
+        var hf = document.getElementById("dashHospFilter").value;
+        var sf = document.getElementById("dashSevFilter").value;
+        var cases = allCases.filter(function (c) {
+          if (hf !== "all" && c.hosp.id !== hf) return false;
+          if (sf !== "all" && c.severity !== sf) return false;
+          return true;
+        });
+        if (!cases.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:36px">No cases match this filter.</td></tr>';
+          return;
+        }
+        var sc = { RED: "red", YELLOW: "yellow", GREEN: "green" },
+          html = "";
+        cases.forEach(function (c) {
+          html +=
+            '<tr><td><span style="font-family:var(--mono);font-size:11px;color:var(--text2)">' +
+            c.caseId +
+            "</span></td>";
+          html +=
+            '<td><span class="sev-dot ' +
+            sc[c.severity] +
+            '"></span>' +
+            c.severity +
+            "</td>";
+          html +=
+            "<td>" +
+            (c.respName !== "Anonymous" ? "via " + c.respName : "Unknown") +
+            "</td>";
+          html +=
+            '<td style="font-size:13px;color:var(--text2)">' +
+            c.desc.substring(0, 46) +
+            (c.desc.length > 46 ? "..." : "") +
+            "</td>";
+          html += "<td>" + (c.hosp.short || c.hosp.name) + "</td>";
+          html +=
+            '<td><span class="eta-tag">~' + c.hosp.eta + " min</span></td>";
+          html +=
+            '<td style="font-size:12px;color:var(--text3)">' +
+            new Date(c.ts).toLocaleTimeString() +
+            "</td>";
+          html +=
+            '<td><button class="table-btn" onclick="viewFromDash(\'' +
+            c.caseId +
+            "')\">View</button></td></tr>";
+        });
+        tbody.innerHTML = html;
+      }
+      function viewFromDash(caseId) {
+        for (var i = 0; i < allCases.length; i++) {
+          if (allCases[i].caseId === caseId) {
+            currentCase = allCases[i];
+            break;
+          }
+        }
+        buildDetails();
+        showScreen("screen-details");
+      }
+
+      function showToast(msg, type) {
+        type = type || "info";
+        var icons = { success: "✅", error: "❌", info: "ℹ️" };
+        var wrap = document.getElementById("toastWrap");
+        var t = document.createElement("div");
+        t.className = "toast " + type;
+        t.innerHTML =
+          "<span>" + icons[type] + "</span><span>" + msg + "</span>";
+        wrap.appendChild(t);
+        setTimeout(function () {
+          t.classList.add("out");
+          setTimeout(function () {
+            if (t.parentNode) t.parentNode.removeChild(t);
+          }, 450);
+        }, 3600);
+      }
+
+      function preloadDemos() {
+        var demos = [
+          {
+            desc: "Cardiac arrest, male 55, unresponsive, no pulse, CPR in progress",
+            sev: "RED",
+          },
+          {
+            desc: "Road accident with fracture and moderate bleeding from leg",
+            sev: "YELLOW",
+          },
+          {
+            desc: "Severe allergic reaction, breathing difficulty after eating seafood",
+            sev: "RED",
+          },
+          {
+            desc: "Elderly woman fell, ankle sprain, minor cuts on forehead",
+            sev: "GREEN",
+          },
+        ];
+        var names = ["Ravi Kumar", "Priya S", "Anonymous", "Dr. Mehta"];
+        demos.forEach(function (d, i) {
+          var ts = new Date(Date.now() - (i + 1) * 9 * 60000);
+          var aera = runAERA(d.sev, userLoc, d.desc);
+          var hosp = aera.best;
+          var fc = {
+            caseId: makeCaseId(),
+            desc: d.desc,
+            severity: d.sev,
+            hosp: hosp,
+            aera: aera,
+            summary: buildSummary(d.desc, d.sev, hosp),
+            fq: buildFollowup(d.desc),
+            fqAnswer: "",
+            ts: ts.toISOString(),
+            respName: names[i],
+            respPhone: "N/A",
+            loc: userLoc,
+            status: "Active",
+          };
+          fc.vitals = buildVitals(d.desc, d.sev);
+          allCases.push(fc);
+          caseCounter++;
+        });
+        document.getElementById("statCases").textContent = caseCounter;
+      }
+    </script>
+  </body>
+</html>
